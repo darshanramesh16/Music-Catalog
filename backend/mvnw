@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+MAVEN_VERSION=3.9.9
+BASE_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+MAVEN_DIR="$BASE_DIR/.mvn/wrapper/apache-maven-$MAVEN_VERSION"
+if [ ! -x "$MAVEN_DIR/bin/mvn" ]; then
+  echo "Please install Maven 3.9+ or run mvnw.cmd on Windows for first-time setup."
+  exit 1
+fi
+exec "$MAVEN_DIR/bin/mvn" "$@"

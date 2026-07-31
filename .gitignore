@@ -1,0 +1,14 @@
+.env
+**/.env
+node_modules/
+**/node_modules/
+target/
+**/target/
+.idea/
+.vscode/
+*.iml
+*.log
+dist/
+**/dist/
+.mvn/wrapper/apache-maven-*/
+.DS_Store
