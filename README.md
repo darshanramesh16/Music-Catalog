@@ -25,7 +25,6 @@ The project is organized as a React frontend and a Spring Boot backend connected
 - [REST APIs](#rest-apis)
 - [Analytics](#analytics)
 - [AI Feature](#ai-feature)
-- [Recommendations](#recommendations)
 - [Recommendation Feature](#recommendation-feature)
 - [Good to Have Features](#good-to-have-features)
 - [Security](#security)
@@ -33,14 +32,15 @@ The project is organized as a React frontend and a Spring Boot backend connected
 - [Running](#running)
 - [Deployment](#deployment)
 - [Trade-offs](#trade-offs)
+- [Architecture Decisions](#architecture-decisions)
 - [Future Improvements](#future-improvements)
 - [Screenshots](#screenshots)
 - [License](#license)
 
 ## Live Demo
 
-- Frontend: `<FRONTEND_RENDER_URL>`
-- Backend: `<BACKEND_RENDER_URL>`
+- Frontend(Render): https://music-catalog-frontend-q6ve.onrender.com
+- Backend(Render): https://music-catalog-5.onrender.com
 
 ## Features
 
@@ -382,11 +382,11 @@ npm run test
 
 Frontend (Render):
 
-`<FRONTEND_RENDER_URL>`
+https://music-catalog-frontend-q6ve.onrender.com
 
-Backend API (Render):
+Backend (Render):
 
-`<BACKEND_RENDER_URL>`
+https://music-catalog-5.onrender.com
 
 Database:
 
@@ -395,6 +395,13 @@ Render PostgreSQL
 ## Trade-offs
 
 This implementation favors clarity and maintainability over complexity. PostgreSQL was chosen for structured relational data, in-memory caching keeps the backend simple, and client-side search pagination avoids introducing server-side pagination logic for the current dataset.
+
+## Architecture Decisions
+
+- Spring Boot acts as the single backend gateway for both the frontend and the iTunes Search API.
+- PostgreSQL stores only user-specific library data, while album search results are fetched from the iTunes API.
+- JWT-based authentication secures protected endpoints.
+- Analytics are computed from the authenticated user's saved library rather than external API responses.
 
 ## Future Improvements
 
