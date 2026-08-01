@@ -14,6 +14,7 @@ import org.springframework.web.client.RestClientResponseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class AiInsightsService {
@@ -36,7 +37,8 @@ public class AiInsightsService {
     @SuppressWarnings("unchecked")
     public Insight generate(String email) {
         if (apiKey == null || apiKey.isBlank()) {
-            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "AI insights are not configured. Set AI_API_KEY to enable them.");
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "AI insights are not configured. Set AI_API_KEY to enable them.");
         }
 
         List<Album> albums = analyticsService.library(email);
@@ -45,21 +47,45 @@ public class AiInsightsService {
         }
 
         var analytics = analyticsService.analytics(email);
-        double averageRating = albums.stream().map(Album::getUserRating).filter(Objects::nonNull)
-                .mapToInt(Integer::intValue).average().orElse(0);
+        int ratedCount = (int) albums.stream().filter(a -> a.getUserRating() != null).count();
+        double averageRating = ratedCount == 0 ? 0
+                : albums.stream().filter(a -> a.getUserRating() != null)
+                        .mapToInt(Album::getUserRating).average().orElse(0);
+
+        String topGenres = analytics.genres().stream()
+                .limit(5)
+                .map(g -> g.name() + " (" + g.count() + ")")
+                .collect(Collectors.joining(", ", "", ""));
+        String topArtists = analytics.artists().stream()
+                .limit(5)
+                .map(a -> a.name() + " (" + a.count() + ")")
+                .collect(Collectors.joining(", ", "", ""));
+        String releasesByYear = analytics.releasesByYear().stream()
+                .limit(6)
+                .map(r -> r.name() + " (" + r.count() + ")")
+                .collect(Collectors.joining(", ", "", ""));
+        String trackDistribution = analytics.trackDistribution().stream()
+                .map(d -> d.name() + " (" + d.count() + ")")
+                .collect(Collectors.joining(", ", "", ""));
+        String ratingSummary = ratedCount == 0
+                ? "no user ratings are available"
+                : "" + ratedCount + " rated albums with an average rating of " + String.format("%.1f", averageRating);
+
         String facts = "Total albums: " + albums.size()
-                + "; top genres: " + analytics.genres().stream().limit(3).toList()
-                + "; top artists: " + analytics.artists().stream().limit(3).toList()
-                + "; releases by year: " + analytics.releasesByYear().stream().limit(5).toList()
-                + "; average rating: " + (averageRating == 0 ? "none" : String.format("%.1f", averageRating));
+                + ". Genre distribution: " + topGenres
+                + ". Top artists: " + topArtists
+                + ". Releases by year: " + releasesByYear
+                + ". Track count distribution: " + trackDistribution
+                + ". Rating data: " + ratingSummary + ".";
 
         Map<String, Object> request = Map.of(
                 "model", model,
                 "messages", List.of(
-                        Map.of("role", "system", "content", "Write a concise, friendly 2-3 sentence music-library trend summary. Use only supplied facts; do not invent details."),
+                        Map.of("role", "system", "content",
+                                "Return exactly 5 analytical bullet points about this saved music collection. Use only the supplied facts and do not invent any details. Each bullet must start with '•', be a full sentence, be between 25 and 45 words long, and focus on a distinct trend. Do not include any introductory or closing sentences outside the bullets. The response should be approximately 150 to 250 words in total. Use rich analysis across genres, artists, release years, track counts, and ratings."),
                         Map.of("role", "user", "content", facts)),
-                "max_tokens", 160,
-                "temperature", 0.5);
+                "max_tokens", 420,
+                "temperature", 0.2);
 
         try {
             Map<String, Object> response = RestClient.create(baseUrl).post()
@@ -71,15 +97,18 @@ public class AiInsightsService {
                     .body(Map.class);
 
             List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
-            Map<String, Object> message = (Map<String, Object>) choices.getFirst().get("message");
+            Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
             return new Insight((String) message.get("content"));
         } catch (RestClientResponseException exception) {
             if (exception.getStatusCode().value() == 429) {
-                throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "Groq quota or rate limit reached. Wait briefly and try again.");
+                throw new ApiException(HttpStatus.TOO_MANY_REQUESTS,
+                        "Groq quota or rate limit reached. Wait briefly and try again.");
             }
-            throw new ApiException(HttpStatus.BAD_GATEWAY, "Groq request failed. Check the API key and selected model.");
+            throw new ApiException(HttpStatus.BAD_GATEWAY,
+                    "Groq request failed. Check the API key and selected model.");
         } catch (Exception exception) {
-            throw new ApiException(HttpStatus.BAD_GATEWAY, "Groq request failed. Check the API configuration and try again.");
+            throw new ApiException(HttpStatus.BAD_GATEWAY,
+                    "Groq request failed. Check the API configuration and try again.");
         }
     }
 }

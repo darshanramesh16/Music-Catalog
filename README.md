@@ -35,18 +35,18 @@ The browser only communicates with Spring Boot. iTunes search results are proxie
 
 ## API Endpoints
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| POST | `/api/auth/register` | Register and receive a JWT |
-| POST | `/api/auth/login` | Login and receive a JWT |
-| GET | `/api/search?query=coldplay&type=album` | Search iTunes albums |
-| GET | `/api/recommendations` | Personalized album recommendations |
-| GET | `/api/library` | Current user's albums |
-| POST | `/api/library` | Add an album |
-| PUT | `/api/library/{id}` | Update rating and notes |
-| DELETE | `/api/library/{id}` | Delete an owned album |
-| GET | `/api/analytics` | Current user's chart data |
-| POST | `/api/ai/insights` | Generate AI library summary |
+| Method | Endpoint                                | Purpose                            |
+| ------ | --------------------------------------- | ---------------------------------- |
+| POST   | `/api/auth/register`                    | Register and receive a JWT         |
+| POST   | `/api/auth/login`                       | Login and receive a JWT            |
+| GET    | `/api/search?query=coldplay&type=album` | Search iTunes albums               |
+| GET    | `/api/recommendations`                  | Personalized album recommendations |
+| GET    | `/api/library`                          | Current user's albums              |
+| POST   | `/api/library`                          | Add an album                       |
+| PUT    | `/api/library/{id}`                     | Update rating and notes            |
+| DELETE | `/api/library/{id}`                     | Delete an owned album              |
+| GET    | `/api/analytics`                        | Current user's chart data          |
+| POST   | `/api/ai/insights`                      | Generate AI library summary        |
 
 Protected routes require `Authorization: Bearer <JWT>`.
 
@@ -56,7 +56,19 @@ The backend issues signed JWTs on registration/login. Spring Security extracts t
 
 ## iTunes Integration
 
-Spring Boot calls Apple’s public iTunes Search API with `RestClient`, maps only needed fields into DTOs, and returns them to React. Search results are not stored automatically.
+Spring Boot calls Apple's public iTunes Search API with `RestClient`, maps only needed fields into DTOs, and returns them to React. Search results are not stored automatically.
+
+## Caching
+
+- Implemented using Spring Cache (`@EnableCaching`, `@Cacheable`) with an in-memory `ConcurrentMap`-backed cache.
+- **Only** `/api/search` (iTunes album search) is cached. Library, auth, JWT, analytics, and AI endpoints intentionally bypass the cache.
+- **Cache duration:** each search query expires automatically **10 minutes** after it was written. A 60-second background sweep also evicts expired keys so stale entries are never served.
+- **Cache key:** `normalized-query|entity` (query is trimmed + lowercased, entity lowercased). "Harry Styles", " harry styles ", and "Harry styles" all share the same entry; "Taylor Swift" gets its own entry.
+- Caching prevents repeated round-trips to the iTunes Search API for identical or case/whitespace variants of recent searches, improving response time for repeated searches.
+- Logging makes cache behavior visible in the backend logs:
+  - First request for a query: `Fetching results from iTunes API... query='...' entity='...'`
+  - Subsequent hits within 10 minutes: `Returned search results from cache. cache=itunesSearch, key=...`
+  - Periodic cleanup (when applicable): `Evicted N expired entries from cache=itunesSearch`
 
 ## Analytics
 
@@ -74,7 +86,7 @@ The optional Library Trend Summary sends a compact aggregate of the current user
 4. Copy `frontend/.env.example` to `frontend/.env`.
 5. In `frontend`, run `npm install` then `npm run dev` (if PowerShell blocks `npm`, use `npm.cmd install` and `npm.cmd run dev`).
 
-Frontend: `http://localhost:5173` · Backend: `http://localhost:8080`
+Frontend: `http://localhost:5173` · Backend: `http://localhost:8081`
 
 ## Environment Variables
 
