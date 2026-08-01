@@ -35,7 +35,11 @@ export default function AuthPage({ register = false }) {
   return (
     <div className="auth">
       <form onSubmit={submit}>
-        <h1>{register ? "Create your account" : "Welcome back"}</h1>
+        <div className="auth-brand">
+          <span className="auth-brand-icon" aria-hidden="true">🎵</span>
+          <h1>Music Catalog</h1>
+        </div>
+        <h2>{register ? "Create your account" : "Welcome back"}</h2>
         <p>
           {register
             ? "Create an account to build your personal album library."

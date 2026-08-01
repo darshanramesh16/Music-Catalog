@@ -30,11 +30,7 @@ public class ItunesService {
         this.objectMapper = objectMapper;
     }
 
-    @Cacheable(
-            value = CacheConfig.ITUNES_SEARCH_CACHE,
-            key = "#query.trim().toLowerCase() + '|' + #entity.toLowerCase()",
-            sync = true
-    )
+    @Cacheable(value = CacheConfig.ITUNES_SEARCH_CACHE, key = "#query.trim().toLowerCase() + '|' + #entity.toLowerCase()", sync = true)
     public List<SearchAlbum> search(String query, String entity) {
         if (query == null || query.isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Search query is required");
@@ -43,11 +39,11 @@ public class ItunesService {
         log.info(
                 "Fetching results from iTunes API... query='{}' entity='{}'",
                 query.trim(),
-                entity
-        );
+                entity);
 
         try {
-            // Apple returns JSON with a text/javascript content type, so read it as text first.
+            // Apple returns JSON with a text/javascript content type, so read it as text
+            // first.
             String rawResponse = client.get()
                     .uri(uri -> uri.path("/search")
                             .queryParam("term", query.trim())
@@ -57,7 +53,8 @@ public class ItunesService {
                     .retrieve()
                     .body(String.class);
 
-            Map<String, Object> body = objectMapper.readValue(rawResponse, new TypeReference<>() {});
+            Map<String, Object> body = objectMapper.readValue(rawResponse, new TypeReference<>() {
+            });
             Object resultValue = body.get("results");
             if (!(resultValue instanceof List<?> results)) {
                 return List.of();

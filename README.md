@@ -1,103 +1,432 @@
 # Music Catalog Insights Platform
 
-## Overview
+![Java 21](https://img.shields.io/badge/Java-21-blue?logo=java)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-6DB33F?logo=spring-boot&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-316192?logo=postgresql&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-secure-orange?logo=json-web-tokens&logoColor=white)
+![MIT License](https://img.shields.io/badge/license-MIT-green)
 
-A full-stack album library application. Users register, search the public iTunes catalog through the Spring Boot backend, save albums to a private library, add ratings and notes, view analytics, and optionally generate an AI trend summary.
+Music Catalog Insights Platform is a full-stack web application for exploring albums, building a personal library, and reviewing personal music trends. Users can search albums through the iTunes API, save them to a private library, add ratings and notes, view analytics, generate an AI-backed trend summary, and authenticate securely with JWT.
 
-## Technology Stack
+The project is organized as a React frontend and a Spring Boot backend connected to PostgreSQL. The backend acts as the gateway to iTunes search results and the application’s own library and analytics data, while the frontend provides search, library, recommendations, and analytics in a single responsive interface.
 
-- Frontend: React, Vite, React Router, Axios, Tailwind CSS, Recharts
-- Backend: Java 21, Spring Boot, Maven, Spring Security, Spring Data JPA, Bean Validation, JWT, RestClient
-- Database: PostgreSQL
+## Table of Contents
 
-## Why Albums Were Chosen
+- [Live Demo](#live-demo)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Why Albums](#why-albums)
+- [Database Choice](#database-choice)
+- [Database Schema](#database-schema)
+- [System Architecture](#system-architecture)
+- [Application Flow](#application-flow)
+- [REST APIs](#rest-apis)
+- [Analytics](#analytics)
+- [AI Feature](#ai-feature)
+- [Recommendations](#recommendations)
+- [Recommendation Feature](#recommendation-feature)
+- [Good to Have Features](#good-to-have-features)
+- [Security](#security)
+- [Setup](#setup)
+- [Running](#running)
+- [Deployment](#deployment)
+- [Trade-offs](#trade-offs)
+- [Future Improvements](#future-improvements)
+- [Screenshots](#screenshots)
+- [License](#license)
 
-Albums were chosen because they map naturally to the required metadata such as title, artist, genre, release date, track count and artwork, while providing useful data for library analytics.
+## Live Demo
 
-## Architecture
-
-`React → Spring Boot → PostgreSQL / iTunes / AI`
-
-The browser only communicates with Spring Boot. iTunes search results are proxied and are never stored until a user explicitly adds an album.
+- Frontend: `<FRONTEND_RENDER_URL>`
+- Backend: `<BACKEND_RENDER_URL>`
 
 ## Features
 
-- JWT registration and login with BCrypt password hashes
-- Private, user-scoped album libraries with duplicate prevention
-- iTunes album search, personalized genre-based album recommendations, library rating/notes editing, and deletion
-- Four database-backed charts: genre donut, top artists, library growth, and release years
-- Optional OpenAI-compatible AI Library Trend Summary
-- Responsive UI with loading, empty, success, and error states
+### Authentication
+
+- User registration and login
+- JWT-based authentication for protected routes
+- Password hashing with BCrypt
+- Authorization header support for protected API requests
+
+### Search
+
+- Search albums by title or artist via the iTunes Search API
+- Debounced search input in the frontend
+- Client-side pagination for search results
+- Search summary showing the current page range and total results
+
+### Recommendations
+
+- Personalized recommendations based on the user’s saved album genres
+- Queries the iTunes Search API for genre-based album matches
+- Filters out albums already saved in the library
+- Returns up to eight recommended albums with a reason message
+- Recommendations are separate from AI Trend Summary
+
+### Library Management
+
+- Save albums into a private library
+- Prevent duplicate albums per user
+- Edit a saved album’s rating and notes
+- Delete albums from the library
+
+### Analytics
+
+- View charts based on the authenticated user’s saved albums
+- Albums by genre — Donut Chart
+- Top artists — Horizontal Bar Chart
+- Release-year distribution — Vertical Bar Chart
+- Tracks per album — Horizontal Bar Chart
+
+### AI
+
+- Generate an AI Trend Summary from saved library data
+- Uses a Groq-compatible OpenAI endpoint when configured
+- Insights are generated from available data only and do not invent facts
+
+### Performance and Quality
+
+- In-memory caching for repeated iTunes search requests
+- Consistent loading, empty, error, and success states in the UI
+- Unit tests for backend services and frontend pages/components
+
+## Tech Stack
+
+### Frontend
+
+- React 19
+- Vite
+- React Router
+- Axios
+- Recharts
+- CSS with Tailwind-compatible styling setup
+
+### Backend
+
+- Java 21
+- Spring Boot 3.4.x
+- Spring Web
+- Spring Security
+- Spring Data JPA
+- Spring Validation
+- JWT authentication with jjwt
+- RestClient for external API calls
+- Maven
+
+### Database
+
+- PostgreSQL
+
+### Charts
+
+- Recharts
+
+### AI
+
+- Groq-compatible OpenAI endpoint via Spring RestClient
+
+### Testing
+
+- Backend: JUnit 5 and Spring Boot test support
+- Frontend: Vitest and React Testing Library
+
+## Project Structure
+
+```text
+backend/
+  src/main/java/com/musiccatalog/
+    config/
+    controller/
+    dto/
+    entity/
+    exception/
+    repository/
+    security/
+    service/
+  src/test/java/
+frontend/
+  src/
+    components/
+    hooks/
+    layouts/
+    pages/
+    routes/
+    test/
+    utils/
+```
+
+## Why Albums?
+
+Albums were chosen because they provide richer metadata than songs or individual artists, including title, artist, genre, release date, track count, artwork, and user-defined ratings and notes. This makes albums a strong fit for library management, personalized recommendations, and analytics.
+
+## Database Choice
+
+PostgreSQL was selected because the application uses relational data with clear relationships between users and albums. It provides ACID transactions, reliable querying, and smooth integration with Spring Boot and JPA.
 
 ## Database Schema
 
-`users` stores an id, unique email, BCrypt password hash, and creation time. `albums` stores iTunes metadata, optional personal rating/notes, timestamps, and the owning `user_id`. A unique constraint on `(user_id, apple_catalog_id)` prevents duplicates per user.
+### User
 
-## API Endpoints
+| Field      | Type      | Notes                           |
+| ---------- | --------- | ------------------------------- |
+| id         | bigint    | Primary key                     |
+| email      | varchar   | Unique, used for authentication |
+| password   | varchar   | BCrypt-hashed password          |
+| created_at | timestamp | Creation time                   |
 
-| Method | Endpoint                                | Purpose                            |
-| ------ | --------------------------------------- | ---------------------------------- |
-| POST   | `/api/auth/register`                    | Register and receive a JWT         |
-| POST   | `/api/auth/login`                       | Login and receive a JWT            |
-| GET    | `/api/search?query=coldplay&type=album` | Search iTunes albums               |
-| GET    | `/api/recommendations`                  | Personalized album recommendations |
-| GET    | `/api/library`                          | Current user's albums              |
-| POST   | `/api/library`                          | Add an album                       |
-| PUT    | `/api/library/{id}`                     | Update rating and notes            |
-| DELETE | `/api/library/{id}`                     | Delete an owned album              |
-| GET    | `/api/analytics`                        | Current user's chart data          |
-| POST   | `/api/ai/insights`                      | Generate AI library summary        |
+### Album
 
-Protected routes require `Authorization: Bearer <JWT>`.
+| Field            | Type      | Notes                            |
+| ---------------- | --------- | -------------------------------- |
+| id               | bigint    | Primary key                      |
+| apple_catalog_id | bigint    | External iTunes album identifier |
+| title            | varchar   | Album title                      |
+| artist_name      | varchar   | Artist name                      |
+| genre            | varchar   | Genre                            |
+| release_date     | date      | Release date                     |
+| track_count      | int       | Track count                      |
+| artwork_url      | varchar   | Album artwork URL                |
+| user_rating      | int       | Optional user rating             |
+| user_notes       | varchar   | Optional user notes              |
+| user_id          | bigint    | Owning user                      |
+| created_at       | timestamp | Creation timestamp               |
+| updated_at       | timestamp | Last update timestamp            |
 
-## Authentication
+A unique constraint on `(user_id, apple_catalog_id)` prevents the same album from being saved multiple times by the same user.
 
-The backend issues signed JWTs on registration/login. Spring Security extracts the email from the token and always scopes library work to that authenticated user; client-supplied user IDs are never accepted.
+## System Architecture
 
-## iTunes Integration
+```mermaid
+graph TD
+  A[React Frontend]
+  B[Spring Boot Backend]
+  C[(PostgreSQL)]
+  D[iTunes Search API]
+  E[Groq AI]
 
-Spring Boot calls Apple's public iTunes Search API with `RestClient`, maps only needed fields into DTOs, and returns them to React. Search results are not stored automatically.
+  A --> B
+  B --> D
+  B --> C
+  B --> E
+```
 
-## Caching
+The React frontend communicates with the Spring Boot backend for search, recommendations, library management, analytics, and AI insights. The backend stores user library data in PostgreSQL, proxies album search requests to iTunes, and forwards analytics facts to the configured AI endpoint.
 
-- Implemented using Spring Cache (`@EnableCaching`, `@Cacheable`) with an in-memory `ConcurrentMap`-backed cache.
-- **Only** `/api/search` (iTunes album search) is cached. Library, auth, JWT, analytics, and AI endpoints intentionally bypass the cache.
-- **Cache duration:** each search query expires automatically **10 minutes** after it was written. A 60-second background sweep also evicts expired keys so stale entries are never served.
-- **Cache key:** `normalized-query|entity` (query is trimmed + lowercased, entity lowercased). "Harry Styles", " harry styles ", and "Harry styles" all share the same entry; "Taylor Swift" gets its own entry.
-- Caching prevents repeated round-trips to the iTunes Search API for identical or case/whitespace variants of recent searches, improving response time for repeated searches.
-- Logging makes cache behavior visible in the backend logs:
-  - First request for a query: `Fetching results from iTunes API... query='...' entity='...'`
-  - Subsequent hits within 10 minutes: `Returned search results from cache. cache=itunesSearch, key=...`
-  - Periodic cleanup (when applicable): `Evicted N expired entries from cache=itunesSearch`
+## Application Flow
+
+```text
+User logs in
+  ↓
+Frontend sends requests to Spring Boot backend
+  ↓
+Search queries go to iTunes through the backend
+  ↓
+Saved albums are stored in PostgreSQL
+  ↓
+Analytics and recommendations are generated from saved albums
+  ↓
+AI Trend Summary is produced from library facts
+```
+
+## REST APIs
+
+| Method | Endpoint                           | Purpose                                                 |
+| ------ | ---------------------------------- | ------------------------------------------------------- |
+| POST   | `/api/auth/register`               | Register a new user and receive a JWT                   |
+| POST   | `/api/auth/login`                  | Authenticate and receive a JWT                          |
+| GET    | `/api/search?query=...&type=album` | Search albums through iTunes                            |
+| GET    | `/api/recommendations`             | Fetch recommendations based on the user’s saved library |
+| GET    | `/api/library`                     | List the current user’s saved albums                    |
+| POST   | `/api/library`                     | Save an album to the user’s library                     |
+| PUT    | `/api/library/{id}`                | Update an album’s rating and notes                      |
+| DELETE | `/api/library/{id}`                | Delete an album from the library                        |
+| GET    | `/api/analytics`                   | Retrieve analytics data for the current user            |
+| POST   | `/api/ai/insights`                 | Generate an AI trend summary from saved albums          |
+
+All protected endpoints require a JWT in the `Authorization: Bearer <token>` header.
 
 ## Analytics
 
-Analytics are calculated from the authenticated user's saved albums only: a genre donut, a horizontal top-artists bar chart, library-growth line chart, and release-year distribution histogram.
+Analytics are generated from the authenticated user’s saved albums and rendered using Recharts. The current frontend includes:
+
+- Albums by genre — Donut Chart
+- Top artists — Horizontal Bar Chart
+- Release-year distribution — Vertical Bar Chart
+- Tracks per album — Horizontal Bar Chart
+
+The analytics panel also includes a separate AI Trend Summary section for text-based insights.
 
 ## AI Feature
 
-The optional Library Trend Summary sends a compact aggregate of the current user’s library to Groq. It never sends credentials, JWTs, or unrelated personal information. If it is not configured or fails, the UI shows an error rather than fake content.
+The AI Trend Summary analyzes the authenticated user’s saved library and creates concise bullet-style insights from the available data. It:
 
-## Local Setup
+- analyzes saved albums from the user’s library
+- identifies genre trends and top artists
+- identifies release-year patterns
+- considers track count distribution and ratings when available
+- composes those facts into a Groq-compatible prompt
+- returns a summary generated only from available data
 
-1. Create a Neon PostgreSQL project/database, or use an existing one.
-2. Copy `backend/.env.example` to `backend/.env` and fill it in with the Neon connection details. Use a JDBC URL such as `jdbc:postgresql://your-neon-host/neondb?sslmode=require`. The backend loads this local properties-style file automatically (environment variables override it in deployment).
-3. In `backend`, run `mvnw.cmd spring-boot:run` on Windows. The first run downloads the Maven runtime; alternatively use an installed Maven with `mvn spring-boot:run`.
-4. Copy `frontend/.env.example` to `frontend/.env`.
-5. In `frontend`, run `npm install` then `npm run dev` (if PowerShell blocks `npm`, use `npm.cmd install` and `npm.cmd run dev`).
+This feature is enabled when `AI_API_KEY` and `AI_BASE_URL` are configured for a compatible Groq endpoint.
 
-Frontend: `http://localhost:5173` · Backend: `http://localhost:8081`
+## Recommendation Feature
 
-## Environment Variables
+Recommendations are generated from the saved library. The feature:
 
-Backend: `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION_MS`, `FRONTEND_URL`, `AI_API_KEY`, `AI_MODEL`, `AI_BASE_URL`.
+- reads the user’s saved albums
+- extracts the most frequent genres
+- queries the iTunes Search API for albums matching each genre
+- filters out albums already saved by the user
+- returns up to eight recommended albums with a genre-based reason
 
-Frontend: `VITE_API_BASE_URL`.
+This approach uses existing genre preferences for album discovery and differs from the AI Trend Summary by focusing on recommendations rather than analytics.
+
+## Good to Have Features
+
+- Debounced search input to reduce unnecessary API calls
+- Client-side pagination for search results
+- Personalized recommendation cards with genre-based reasons
+- Separate AI Trend Summary panel
+- In-memory caching for repeated iTunes search queries
+- Clear loading, empty, and error states in the UI
+- Backend and frontend tests for key flows
+
+## Security
+
+Spring Security and JWT authentication protect the backend API. Passwords are stored with BCrypt, and protected routes validate bearer tokens before allowing access.
+
+## Setup
+
+### Backend
+
+1. Copy `backend/.env.example` to `backend/.env`.
+2. Configure your PostgreSQL connection variables and JWT settings.
+3. Install dependencies and run the server:
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+On Windows:
+
+```powershell
+cd backend
+mvnw.cmd spring-boot:run
+```
+
+### Frontend
+
+1. Copy `frontend/.env.example` to `frontend/.env`.
+2. Install dependencies:
+
+```bash
+cd frontend
+npm install
+```
+
+### Environment Variables
+
+#### Backend
+
+- `DATABASE_URL`
+- `DATABASE_USERNAME`
+- `DATABASE_PASSWORD`
+- `JWT_SECRET`
+- `JWT_EXPIRATION_MS`
+- `FRONTEND_URL`
+- `AI_API_KEY`
+- `AI_MODEL`
+- `AI_BASE_URL`
+
+#### Frontend
+
+- `VITE_API_BASE_URL`
+
+## Running
+
+### Backend
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+### Testing
+
+#### Backend
+
+```bash
+cd backend
+./mvnw test
+```
+
+#### Frontend
+
+```bash
+cd frontend
+npm run test
+```
 
 ## Deployment
 
-Set `FRONTEND_URL` to the deployed frontend origin and `VITE_API_BASE_URL` to the deployed backend URL with `/api` appended. Configure managed PostgreSQL connection values as backend environment variables. Build React with `npm run build`; build Spring Boot with `mvnw.cmd clean package`.
+Frontend (Render):
+
+`<FRONTEND_RENDER_URL>`
+
+Backend API (Render):
+
+`<BACKEND_RENDER_URL>`
+
+Database:
+
+Render PostgreSQL
 
 ## Trade-offs
 
-Functionality and maintainability were prioritized over excessive complexity because this is a time-boxed take-home assignment. The project uses a simple layered Spring design and a compact client-side React structure rather than microservices or extra state-management frameworks.
+This implementation favors clarity and maintainability over complexity. PostgreSQL was chosen for structured relational data, in-memory caching keeps the backend simple, and client-side search pagination avoids introducing server-side pagination logic for the current dataset.
+
+## Future Improvements
+
+- Server-side pagination for search and library results
+- Advanced recommendation engine with artist and metadata matching
+- Playlist support for saved collections
+- Redis caching for API responses and session state
+- OAuth login for social authentication
+- Expanded analytics and exportable reports
+
+## Screenshots
+
+### Login
+
+![Login](...)
+
+### Search
+
+![Search](...)
+
+### Library
+
+![Library](...)
+
+### Analytics
+
+![Analytics](...)
+
+### AI Trend Summary
+
+![AI Trend Summary](...)
+
+## License
+
+MIT

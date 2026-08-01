@@ -193,6 +193,13 @@ export default function SearchPage() {
   const startIndex = (safeCurrentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const pagedItems = items.slice(startIndex, endIndex);
+  const totalResults = items.length;
+  const startResult = totalResults === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage + 1;
+  const endResult = totalResults === 0 ? 0 : Math.min(safeCurrentPage * itemsPerPage, totalResults);
+  const resultsSummary =
+    state === "done" && totalResults > 0 && query.trim()
+      ? `Showing ${startResult}–${endResult} of ${totalResults} albums for "${query.trim()}"`
+      : null;
 
   return (
     <section>
@@ -298,6 +305,7 @@ export default function SearchPage() {
 
       {state === "done" && items.length > 0 && (
         <>
+          {resultsSummary && <p className="search-results-summary">{resultsSummary}</p>}
           <div className="grid">
             {pagedItems.map((album) => (
               <AlbumCard
