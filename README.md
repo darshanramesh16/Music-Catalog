@@ -405,89 +405,88 @@ This implementation favors clarity and maintainability over complexity. PostgreS
 - OAuth login for social authentication
 - Expanded analytics and exportable reports
 
-### Screenshots
+# Screenshots
 
 ## Login & Authentication
 
-# User Registration - 
+### User Registration - 
 Create a new account using email and password.
 <img width="1911" height="869" alt="image" src="https://github.com/user-attachments/assets/51fb0bb3-45d9-4307-ac49-cfc8296706f0" />
 
-# User Login -
+### User Login -
 Authenticate securely using JWT-based authentication.
 <img width="1910" height="872" alt="image" src="https://github.com/user-attachments/assets/d15ef180-5f10-4c03-9661-9b5d20cd28c2" />
 
 
 ## Search
 
-# Personalized Recommendations -
+### Personalized Recommendations -
 Displays album recommendations based on the user's saved library and preferred genres.
 <img width="1888" height="868" alt="image" src="https://github.com/user-attachments/assets/37a05ecb-1e55-4368-9966-95d1972638da" />
 
-# Album Search -
+### Album Search -
 Search albums by title or artist using the iTunes Search API.
 <img width="1890" height="868" alt="image" src="https://github.com/user-attachments/assets/204bddab-50f2-4b4c-a0ac-29bf704a9df3" />
 
-# Search Pagination -
+### Search Pagination -
 Browse search results with client-side pagination (6 albums per page).
 <img width="1888" height="869" alt="image" src="https://github.com/user-attachments/assets/7e3e5985-31ad-4dbe-9421-0e9a31e37ae9" />
 
-# Success Notification -
+### Success Notification -
 Toast notification displayed after successfully saving an album to the library.
 <img width="1885" height="869" alt="image" src="https://github.com/user-attachments/assets/413b56bd-c4ac-4695-829d-d45bfca9887a" />
 
 
 ## Library
 
-# My Library -
+### My Library -
 View all albums saved in your personal music collection.
 <img width="1886" height="867" alt="image" src="https://github.com/user-attachments/assets/a8c03f57-a171-496a-a955-2b677deae247" />
 
-# Edit Rating & Notes -
+### Edit Rating & Notes -
 Update personal ratings and notes for any saved album.
 <img width="1886" height="868" alt="image" src="https://github.com/user-attachments/assets/e46b6d38-73c3-4183-9ccd-7a5759c3110d" />
 
-# Saved Album - 
+### Saved Album - 
 Example of an album stored in the user's library with rating and notes.
 <img width="1884" height="869" alt="image" src="https://github.com/user-attachments/assets/9c1d6280-ae67-4723-aed9-12300f82e893" />
 
-# Delete Album -
+### Delete Album -
 Remove albums from the personal library.
 <img width="1884" height="864" alt="image" src="https://github.com/user-attachments/assets/12dc2a85-97fe-49b8-83d5-8240743c97dd" />
 
-# Delete Confirmation -
+### Delete Confirmation -
 Success notification displayed after removing an album from the library.
 <img width="1887" height="865" alt="image" src="https://github.com/user-attachments/assets/a21f82d5-e37a-4ef6-af26-f061e7197012" />
 
 
 ## Analytics
 
-# Analytics Dashboard -
+### Analytics Dashboard -
 Overview of genre distributionan and top artists. 
 <img width="1889" height="644" alt="image" src="https://github.com/user-attachments/assets/59e563ea-63e3-4d9c-a4bc-5dacecd93396" />
 
-# Analytics Dashboard -
+### Analytics Dashboard -
 Overview of release years, and track count analysis.
 <img width="1887" height="552" alt="image" src="https://github.com/user-attachments/assets/095bd2fb-fb6c-453d-ae70-157b43d3a70f" />
 
 
 ## AI Trend Summary
 
-# AI Trend Summary - 
+### AI Trend Summary - 
 AI-generated insights based on the user's saved albums, highlighting listening patterns, genres, artists, 
 <img width="1741" height="543" alt="image" src="https://github.com/user-attachments/assets/8ea5c64e-7a44-4e91-9d09-d03a012881c8" />
 
 
-### Profile
+## Profile
 
-# User Profile -
+### User Profile -
 Access account information and profile options.
 <img width="406" height="237" alt="image" src="https://github.com/user-attachments/assets/5074d7f0-a3f4-47b1-b6d1-57519db3c680" />
 
-# Logout -
+### Logout -
 Securely sign out of the application.
 <img width="1882" height="867" alt="image" src="https://github.com/user-attachments/assets/aafb2f0e-1682-4d44-954b-fe3d4cb87a18" />
 
 ## License
-
 MIT
