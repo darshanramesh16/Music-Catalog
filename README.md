@@ -1,4 +1,3 @@
-<img width="1920" height="1080" alt="Screenshot 2026-07-31 211807" src="https://github.com/user-attachments/assets/686742bd-fd92-4d73-8c31-ab4822828882" />
 # Music Catalog Insights Platform
 
 ![Java 21](https://img.shields.io/badge/Java-21-blue?logo=java)
@@ -410,7 +409,13 @@ This implementation favors clarity and maintainability over complexity. PostgreS
 
 ### Login
 
-![Login](...)<img width="1920" height="1080" alt="Screenshot 2026-07-31 211807" src="https://github.com/user-attachments/assets/54cd8e19-b42d-4e5a-bb71-258dee2b4eb1" />
+![Login](...)
+Create a Account
+<img width="1911" height="869" alt="image" src="https://github.com/user-attachments/assets/51fb0bb3-45d9-4307-ac49-cfc8296706f0" />
+
+Login Page
+<img width="1910" height="872" alt="image" src="https://github.com/user-attachments/assets/d15ef180-5f10-4c03-9661-9b5d20cd28c2" />
+
 
 
 ### Search
