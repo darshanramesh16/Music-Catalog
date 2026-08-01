@@ -36,16 +36,11 @@ export default function SearchPage() {
   const hasMounted = useRef(false);
 
   useEffect(() => {
-    if (saved && saved?.inLibrary?.length) return;
     api
       .get("/library")
       .then((response) => {
         const ids = new Set(response.data.map((a) => a.appleCatalogId));
-        setInLibrary((prev) => {
-          const merged = new Set(prev);
-          ids.forEach((id) => merged.add(id));
-          return merged;
-        });
+        setInLibrary(ids);
       })
       .catch(() => {});
   }, []);
@@ -161,7 +156,7 @@ export default function SearchPage() {
       setRecommendations((current) =>
         current.filter((item) => item.album.appleCatalogId !== album.appleCatalogId),
       );
-      showToast(`✓ ${album.title} added to your library`, "success");
+      showToast(` ${album.title} added to your library`, "success");
     } catch (requestError) {
       showToast(errorMessage(requestError), "error");
     } finally {
